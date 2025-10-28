@@ -1,0 +1,133 @@
+type: baseline
+
+embedding_size: [320, 150] # TODO: extract from model
+
+cnn_sequence_length: 150
+
+tags:
+  - "former model"
+  - "poisson"
+
+splits:
+  training_pair:
+    ["Mix21_DNA_2_3"]
+  validation_pair:
+    ["Mix24_DNA_2_3"]
+
+phage_initial_population_size: 1e13
+sequencing_depth: 1e5
+
+# Options: "MLP", "CNN", "Transformer", "HybridCNN", "DoubleCNNWithNegative", "CNNWithBoltzmann"
+fitness_predictor_architecture: "MLP"
+
+fitness_predictor_mlp:
+  layers_size: [320, 8, 8, 4, 1] # TODO: extract first size from model
+
+
+fitness_predictor_transformer:
+  d_model: 6
+  nhead: 2
+  num_encoder_layers: 2
+  dim_feedforward: 6
+  ffn_activation_name: ReLU # possible values: tanh, sigmoid, ReLU, LeakyReLU
+  pooling_type: mean # possible values: mean, cls
+
+fitness_predictor_cnn:
+  list_of_channels: [320, 2]
+  list_of_kernel_size: [5]
+  list_of_stride: [3]
+  list_of_padding: [1]
+  layers_size: [50, 1]
+  pooling_name: AvgPool1d # possible values: MaxPool1d, AvgPool1d, none
+  pool_size: [2]
+  pool_stride: [2]
+  batch_norm_name: BatchNorm1d # possible values: BatchNorm1d, none
+  residual_connections: false
+
+training:
+  learning_rate: 1e-2
+  activation_name: tanh # possible values: tanh, sigmoid, ReLU, LeakyReLU
+  weight_decay: 1e-6
+  prior_scale: 5.0
+  clip_norm: 100
+  dropout_value: 0.0
+  use_scheduler: true
+  epochs: 10
+  end_of_warmup: 100
+  gamma_scheduler: 0.999
+  kl_annealing: 100 #7000000
+  kl_annealing_type: "linear" # possible values: linear, exponential, cyclic
+  latents_to_anneal: null
+  number_of_particles: 5
+  optimizer: "AdamW" # possible values: AdamW, Adam, RMSprop
+  model_base_path: null
+  params_base_path: null
+  best_model_decision_set: "valid" # possible values: train, valid
+  batch_size: null
+  shuffle: false
+  EMA_beta: 0.99
+  is_null_model: false
+  test_data_dir: null
+  every_n_epochs: 50
+  estimate_method: "global" # possible values: batch, global, N-1
+  distribution: "src.models.baseline_model.PhageDisplayPoissonRegressor" # possible values: poisson:src.models.baseline_model.PhageDisplayPoissonRegressor, multinomial:src.models.baseline_model.PhageDisplayMultinomialRegressor
+  delete_initial_null_counts: add_pseudo_counts
+  guide_type: "DiagonalNormal" # possible values: MultivariateNormal, DiagonalNormal, Normal, LowRankMultivariateNormal
+  number_of_models: one # possible values: one, sequential_latent, sequential_output, distinct
+  num_workers: 0
+
+prediction:
+  model_dir_path: #s
+  experiment_name: test_explaining_CNN
+  background_csv_file_location: mini_test_background.csv
+  to_predict_csv_file_location: mini_test_prediction.csv
+  experiment_pair_predict: [DNA_1nM_2_3]
+  experiment_pair_background: [DNA_100pM_2_3]
+  explain: true
+  number_of_particles: 100
+  use_training_cfg: false
+  save_deterministic_ckpt: false
+  deterministic_checkpoint_path: experiments/deterministic_checkpoint.pth
+
+
+explainer:
+  type: "integrated_gradients"  # Options: "grad_cam", "shapley", "lrp", "lrp_captum", "none"
+  use_padding_for_baseline: false
+  # Grad-CAM specific settings
+  num_model_to_explain: 50 # if you input 0, it will take the mean model
+  use_neptune: false
+  save_images: true
+  # Aggregation mode settings for relevance scores only
+  aggregation_mode: "percentile"  # Options: "mean", "percentile"
+  percentile_union: 95  # Percentile value (0-100) when aggregation_mode is "percentile". Union = 95 and Intersection = 05
+  percentile_inter: 5
+  epsilon_uai: 0.001  # Threshold for UAI+ calculation (probability of relevance < epsilon)
+  grad_cam:
+    target_cnn_layer: null  # null for auto-selection, or specify layer index
+  # Shapley specific settings
+  shapley:
+    background_samples: 100
+  # LRP specific settings
+  lrp:
+    rule: "epsilon"  # "epsilon" or "alpha_beta"
+    epsilon: 1e-6
+    alpha: 2
+    beta: 1
+  # LRP Captum specific settings
+  lrp_captum:
+    rule: "epsilon"  # "epsilon" or "alpha_beta"
+    epsilon: 1e-6
+    alpha: 2
+    beta: 1
+    calculate_metrics: true  # Calculate Captum explicability metrics
+  # GradCAM Captum specific settings
+  gradcam_captum:
+    target_layers: [0, 1, 2]  # List of conv layer indices to analyze (0, 1, 2 for first 3 conv layers)
+  deeplift:
+    calculate_metrics: true  # Calculate Captum explicability metrics
+  deeplift_shap:
+    num_baselines: 20  # Number of random baseline examples for DeepLift SHAP
+    calculate_metrics: true  # Calculate Captum explicability metrics
+  integrated_gradients:
+    steps: 50  # Number of steps for integration
+    calculate_metrics: true  # Calculate Captum explicability metrics

@@ -1,0 +1,9 @@
+# ESM models
+esm_model_name: "facebook/esm2_t6_8M_UR50D" #possible values: facebook/esm2_t6_8M_UR50D, facebook/esm2_t12_35M_UR50D, esm2_t30_150M_UR50D, facebook/esm2_t33_650M_UR50D
+# possible value ESM++: Synthyra/ESMplusplus_small, Synthyra/ESMplusplus_large
+# ESM++ is a faithfull implementation of ESM C
+
+esm_batch_size: 64
+representation_layer: 6
+storage_device: "cuda"
+dataloader_type: "normal"

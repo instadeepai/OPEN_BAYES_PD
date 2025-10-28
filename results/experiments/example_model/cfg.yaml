@@ -1,0 +1,159 @@
+to_cuda: cuda
+raise_exception_if_gpus_not_available: true
+neptune_project: null
+use_neptune: false
+paths:
+  data_dir: ${hydra:runtime.cwd}/data
+  results_dir: ${hydra:runtime.cwd}/results_seb
+preprocessing:
+  esm_model_name: facebook/esm2_t6_8M_UR50D
+  esm_batch_size: 64
+  representation_layer: 6
+  storage_device: cuda
+  dataloader_type: normal
+model:
+  type: baseline
+  embedding_size:
+  - 320
+  - 150
+  cnn_sequence_length: 150
+  tags:
+  - naive
+  - 25percent
+  splits:
+    training_pair:
+    - Mix24_DNA_2_3
+    validation_pair:
+    - Mix21_DNA_2_3
+    test_pair:
+    - place_holder_1
+    relative_csv_file_location:
+      DNA: Boyer_et_al_data_with_pseudo_counts_round2.csv
+      PVP: Boyer_et_al_data_with_pseudo_counts_round2.csv
+  phage_initial_population_size: 10000000000000.0
+  sequencing_depth: 1000000.0
+  fitness_predictor_architecture: CNN
+  fitness_predictor_mlp:
+    layers_size:
+    - 640
+    - 320
+    - 160
+    - 80
+    - 40
+    - 1
+  fitness_predictor_cnn:
+    list_of_channels:
+    - 320
+    - 128
+    - 64
+    - 32
+    list_of_kernel_size:
+    - 5
+    - 3
+    - 3
+    list_of_stride:
+    - 3
+    - 2
+    - 2
+    list_of_padding:
+    - 2
+    - 1
+    - 1
+    layers_size:
+    - 32
+    - 32
+    - 1
+    pooling_name: AvgPool1d
+    pool_size:
+    - 2
+    - 2
+    - 2
+    pool_stride:
+    - 2
+    - 2
+    - 2
+    batch_norm_name: BatchNorm1d
+    residual_connections: false
+    residual_skip_layers: 1
+  fitness_predictor_transformer:
+    d_model: 320
+    nhead: 4
+    num_encoder_layers: 1
+    dim_feedforward: 320
+    ffn_activation_name: tanh
+    pooling_type: mean
+  training:
+    relative_model_checkpoint_location: null
+    relative_csv_file_location: null
+    experiment_name: testing_seb
+    learning_rate: 0.02
+    weight_decay: 1.0e-06
+    prior_scale: 5.0
+    clip_norm: 100
+    dropout_value: 0.1
+    activation_name: ReLU
+    use_scheduler: true
+    epochs: 1000
+    end_of_warmup: 100
+    gamma_scheduler: 0.999
+    is_null_model: false
+    kl_annealing: 10
+    kl_annealing_type: cyclic
+    latents_to_anneal: null
+    number_of_particles: 10
+    optimizer: AdamW
+    best_model_decision_set: valid
+    model_base_path: null
+    params_base_path: null
+    batch_size: null
+    shuffle: true
+    every_n_epochs: 499
+    estimate_method: EMA
+    distribution: src.models.baseline_model.PhageDisplayPoissonRegressor
+    delete_initial_null_counts: add_pseudo_counts
+    guide_type: DiagonalNormal
+    number_of_models: distinct
+    num_workers: 0
+    EMA_beta: 0.99
+    test_data_dir: null
+  prediction:
+    model_dir_path: experiments/testing_seb_2025-10-22T135855.894061_none
+    experiment_name: predict_seb
+    background_csv_file_location: null
+    to_predict_csv_file_location: test.csv
+    experiment_pair_background:
+    - place_holder_1
+    experiment_pair_predict:
+    - Mix24_DNA_2_3
+    explain: true
+    use_lrp_captum: true
+    use_training_cfg: false
+    number_of_particles: 10
+    save_deterministic_ckpt: false
+    deterministic_checkpoint_path: experiments/testing_seb_2025-10-22T135855.894061_none/model.pth
+  explainer:
+    type: integrated_gradients
+    use_padding_for_baseline: false
+    num_model_to_explain: 0
+    use_neptune: false
+    save_images: true
+    aggregation_mode: percentile
+    percentile_union: 95
+    percentile_inter: 5
+    epsilon_uai: 0.1
+    lrp_captum:
+      rule: epsilon
+      epsilon: 0.01
+      alpha: 2
+      beta: 1
+      calculate_metrics: true
+    gradcam_captum:
+      target_layers: 2
+    deeplift:
+      calculate_metrics: true
+    deeplift_shap:
+      num_baselines: 2
+      calculate_metrics: true
+    integrated_gradients:
+      steps: 50
+      calculate_metrics: true

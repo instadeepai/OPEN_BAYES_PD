@@ -1,0 +1,133 @@
+type: baseline
+embedding_size: [320, 150] # it is extracted from the model
+cnn_sequence_length: 150
+tags:
+  ['naive', '25percent']
+splits:
+  training_pair:
+    ['Mix24_DNA_2_3'] # non collapsed
+    #['Mix24_PVP_2_3'] # collapsed
+  validation_pair:
+    ['Mix21_DNA_2_3'] # non collapsed
+    #['Mix24_PVP_2_3'] # collapsed
+  test_pair:
+    ['place_holder_1']
+  relative_csv_file_location:
+    DNA: "test.csv" #"Boyer_et_al_data_with_pseudo_counts_round2.csv" for the real data
+    PVP: "Boyer_et_al_data_with_pseudo_counts_round2.csv"
+
+
+
+
+phage_initial_population_size: 1e13
+sequencing_depth: 1e6
+
+fitness_predictor_architecture: "CNN" # possible values: MLP, CNN, Transformer, HybridCNN, DoubleCNNWithNegative, CNNWithBoltzmann
+
+fitness_predictor_mlp:
+  layers_size: [640, 320, 160, 80, 40, 1]
+fitness_predictor_cnn:
+  list_of_channels: [320,12,64,32]
+  list_of_kernel_size: [5, 3, 3]
+  list_of_stride: [3, 2, 2]
+  list_of_padding: [2, 1, 1] # if you use skip connections, padding should be kernel -1 //2
+  layers_size: [32, 32, 1]
+  pooling_name: AvgPool1d # possible values: MaxPool1d, AvgPool1d, none
+  pool_size: [2, 2, 2]
+  pool_stride: [2, 2, 2]
+
+  batch_norm_name: BatchNorm1d # possible values: BatchNorm1d, none
+  residual_connections: false # whether to use residual connections
+  residual_skip_layers: 1
+
+fitness_predictor_transformer:
+  d_model: 320
+  nhead: 4
+  num_encoder_layers: 1
+  dim_feedforward: 320
+  ffn_activation_name: tanh
+  pooling_type: mean # possible values: cls, mean
+
+training:
+  # Base path now handled by paths.data_dir and paths.results_dir in config/default.yaml
+  relative_model_checkpoint_location: null
+  relative_csv_file_location: null
+  experiment_name: testing_repo
+
+  learning_rate: 2e-2
+  weight_decay: 1e-6
+  prior_scale: 5.0
+  clip_norm: 100
+  dropout_value: 0.1
+  activation_name: ReLU # possible values: tanh, sigmoid, ReLU, LeakyReLU.
+  use_scheduler: true
+  epochs: 5
+  end_of_warmup: 100
+  gamma_scheduler: 0.999
+  is_null_model: false
+  kl_annealing: 10 #1 for no annealing
+  kl_annealing_type: "cyclic" # possible values: linear, exponential, cyclic
+  latents_to_anneal: null
+  number_of_particles: 10
+  optimizer: "AdamW" #possible values: AdamW, Adam, RMSprop
+  best_model_decision_set: "valid" # possible values: train, valid
+  model_base_path: null
+  params_base_path: null
+  batch_size: null
+  shuffle: true
+  every_n_epochs: 499
+  estimate_method: "global" # possible values: batch, global, N-1, moving_average
+  distribution:  "src.models.baseline_model.PhageDisplayPoissonRegressor" # possible values: poisson:src.models.baseline_model.PhageDisplayPoissonRegressor, multinomial:src.models.baseline_model.PhageDisplayMultinomialRegressor
+  # maybe try to artificially add some pseudo counts
+  delete_initial_null_counts: add_pseudo_counts # add_pseudo_counts, delete, null
+  guide_type: "DiagonalNormal" # possible values: MultivariateNormal, DiagonalNormal, Normal, LowRankMultivariateNormal
+  number_of_models: distinct # possible values: distinct, one, two, sequential_latent, sequential_output
+  num_workers: 0
+  EMA_beta: 0.99
+  test_data_dir: null
+
+
+prediction:
+  model_dir_path: experiments/example_model
+  experiment_name: predict_outside_pretrained_finetuned_iteravite_refinement_150
+  background_csv_file_location: null
+  to_predict_csv_file_location: test_prediction.csv
+  experiment_pair_background: ['Mix24_DNA_2_3']
+  experiment_pair_predict: ['Mix24_DNA_2_3']
+  explain: true  # Enable explanation generation
+  use_lrp_captum: true
+  use_training_cfg: true
+  number_of_particles: 50
+  save_deterministic_ckpt: false
+  deterministic_checkpoint_path: experiments/deterministic_checkpoint.pth
+
+
+explainer:
+  type: "lrp_captum"  # Options: "grad_cam", "shapley", "lrp", "lrp_captum", "none"
+  # Grad-CAM specific settings
+  use_padding_for_baseline: false
+  num_model_to_explain: 0 # if you set it to 0, it will take the mean model
+  use_neptune: false
+  save_images: true
+  # Aggregation mode settings for relevance scores only
+  aggregation_mode: "percentile"  # Options: "mean", "percentile"
+  percentile_union: 95  # Percentile value (0-100) when aggregation_mode is "percentile". Union = 95 and Intersection = 05 in paper
+  percentile_inter: 5
+  epsilon_uai: 0.1  # Threshold for UAI+ calculation (probability of relevance < epsilon)
+  lrp_captum:
+    rule: "epsilon"  # "epsilon" or "alpha_beta"
+    epsilon: 1e-2
+    alpha: 2
+    beta: 1
+    calculate_metrics: true  # Calculate Captum explicability metrics
+  # GradCAM Captum specific settings
+  gradcam_captum:
+    target_layers: 2 # List of conv layer indices to analyze (0, 1, 2 for first 3 conv layers)
+  deeplift:
+    calculate_metrics: true  # Calculate Captum explicability metrics
+  deeplift_shap:
+    num_baselines: 2  # Number of random baseline examples for DeepLift SHAP
+    calculate_metrics: true  # Calculate Captum explicability metrics
+  integrated_gradients:
+    steps: 50  # Number of steps for integration
+    calculate_metrics: true  # Calculate Captum explicability metrics

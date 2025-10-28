@@ -1,0 +1,12 @@
+to_cuda: null
+
+defaults:
+  - _self_
+  - preprocessing: default
+  - model: baseline
+
+use_neptune: false
+
+paths:
+  data_dir: ${hydra:runtime.cwd}/tests/data
+  results_dir: ${hydra:runtime.cwd}/tests/results
