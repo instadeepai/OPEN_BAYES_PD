@@ -1,3 +1,0 @@
-[console_scripts]
-predict_phage_display = scripts.predict:main
-train_phage_display = scripts.train:main

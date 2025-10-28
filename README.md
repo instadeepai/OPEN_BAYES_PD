@@ -17,6 +17,8 @@ Abstract context: Phage display is a powerful technique to study interactions be
 - `config/`: Hydra config (`default.yaml`, model and preprocessing profiles)
 - `src/`: data processing, model definitions, explainers, utilities
 - `tests/`: unit tests & more on small datasets for CI. Contain a test that check if your CNN configuration is valid.
+- `notebook/`: Contains notebooks to visualize the results of the experiment.
+- `data/`: Folder containing example data. Place your own data here.
 
 ---
 
@@ -204,7 +206,6 @@ Upon successful completion of training, a new directory will be created in `resu
 You should reuse this configuration when running the prediction script. If you enable `use_training_cfg`, the prediction script will automatically load `cfg.yaml` from your experiment folder to ensure the architecture and other settings precisely match your trained model. This avoids any issues due to configuration drift between training and inference.
 
 If Neptune logging is enabled (`use_neptune: true`), training progress and results—including metrics, curves, and checkpoints—will be tracked in your Neptune project for easy monitoring and comparison. Otherwise, training and validation performance curves will be saved locally in the `graphs/` directory at the end of training for your review.
----
 
 ## Prediction and Explainability
 The prediction script loads the model config (if present in the experiment directory) to ensure architecture compatibility, scores sequences, and optionally saves explainability outputs. If you don't use this option, ensure that the configuration betzeen the model you are loading and the actual one match. Don't forget to configuate the model checkpoint path created in experiments during Training and prediction dataset before.
