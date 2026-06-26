@@ -251,4 +251,19 @@ The public datasets included in this repository originate from the following pub
 Please credit the original authors when using these data in derivative works or publications.
 
 ## Citation
-If you use this codebase in your research, please cite the associated paper once available. A BibTeX entry will be added here upon publication.
+If you use this codebase in your research, please cite the associated paper:
+
+```bibtex
+@misc{amiaudplachy2026bayespdexploringsequencebinding,
+      title={Bayes-PD: Exploring a Sequence to Binding Bayesian Neural Network model trained on Phage Display data},
+      author={Ilann Amiaud-Plachy and Michael Blank and Oliver Bent and Sebastien Boyer},
+      year={2026},
+      eprint={2601.03930},
+      archivePrefix={arXiv},
+      primaryClass={q-bio.PE},
+      url={https://arxiv.org/abs/2601.03930},
+}
+```
+
+## License
+This project is released under the [MIT License](LICENSE).
